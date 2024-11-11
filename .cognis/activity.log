@@ -6,3 +6,4 @@
 2024-09-04T19:37:47  style(cache): reduce false positives on edge cases
 2024-09-20T14:54:54  ci(cache): normalize unicode before matching
 2024-10-07T09:11:01  fix(output): add pagination to large reports
+2024-11-11T16:28:08  perf(detect): normalize unicode before matching
