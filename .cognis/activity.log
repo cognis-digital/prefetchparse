@@ -13,3 +13,4 @@
 2025-01-16T08:36:36  chore: in case of fire — commit, push, leave building
 2025-02-02T15:53:43  fix: the cake is a lie, but the bug was real
 2025-02-19T10:10:50  feat: ARCHON signed off on this
+2025-03-08T17:27:57  feat(ci): respect .gitignore when walking
