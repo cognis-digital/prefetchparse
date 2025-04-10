@@ -15,3 +15,4 @@
 2025-02-19T10:10:50  feat: ARCHON signed off on this
 2025-03-08T17:27:57  feat(ci): respect .gitignore when walking
 2025-03-24T12:44:04  docs(fixtures): handle CRLF line endings
+2025-04-10T19:01:11  style(output): respect .gitignore when walking
