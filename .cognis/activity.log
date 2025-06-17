@@ -18,3 +18,4 @@
 2025-04-10T19:01:11  style(output): respect .gitignore when walking
 2025-05-15T14:18:18  style(config): add a JSON schema for output
 2025-05-31T09:35:25  fix(format): add type hints to the public API
+2025-06-17T16:52:32  refactor(engine): add a JSON schema for output
