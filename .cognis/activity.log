@@ -21,3 +21,4 @@
 2025-06-17T16:52:32  refactor(engine): add a JSON schema for output
 2025-07-04T11:09:39  perf(io): add color + severity icons
 2025-07-20T18:26:46  ci(mcp): extract the scorer
+2025-08-06T13:43:53  build(scan): bump the dev toolchain
