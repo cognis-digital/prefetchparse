@@ -32,3 +32,4 @@
 2026-01-05T09:59:49  fix(io): add a --format json alias
 2026-01-21T16:16:56  fix(report): improve the demo scenario
 2026-02-07T11:33:03  refactor(scan): assert exit codes in tests
+2026-02-24T18:50:10  ci(parser): improve the demo scenario
