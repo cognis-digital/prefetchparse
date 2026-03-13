@@ -33,3 +33,4 @@
 2026-01-21T16:16:56  fix(report): improve the demo scenario
 2026-02-07T11:33:03  refactor(scan): assert exit codes in tests
 2026-02-24T18:50:10  ci(parser): improve the demo scenario
+2026-03-13T13:07:17  ci(parser): handle empty and malformed input
