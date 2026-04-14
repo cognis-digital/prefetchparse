@@ -35,3 +35,4 @@
 2026-02-24T18:50:10  ci(parser): improve the demo scenario
 2026-03-13T13:07:17  ci(parser): handle empty and malformed input
 2026-03-29T08:24:24  chore(docs): document the config keys
+2026-04-14T15:41:31  perf(core): handle empty and malformed input
