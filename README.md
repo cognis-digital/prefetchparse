@@ -36,9 +36,10 @@ Surface program-execution evidence from Windows Prefetch exports — without sta
 <a name="features"></a>
 ## Features
 
-- ✅ Todo
-- ✅ Fixme
-- ✅ Xxx
+- ✅ Parse Prefetch Bytes
+- ✅ Parse Prefetch File
+- ✅ Scan Directory
+- ✅ Triage Findings
 - ✅ Runs on Linux/macOS/Windows · Docker · devcontainer
 - ✅ Ports in Python, JavaScript, Go, and Rust (`ports/`)
 
