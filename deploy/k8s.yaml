@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: prefetchparse, labels: { app: prefetchparse } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: prefetchparse } }
+  template:
+    metadata: { labels: { app: prefetchparse } }
+    spec:
+      containers:
+        - name: prefetchparse
+          image: ghcr.io/cognis-digital/prefetchparse:latest
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits: { cpu: "500m", memory: "256Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: prefetchparse }
+spec:
+  selector: { app: prefetchparse }
+  ports: [{ port: 80, targetPort: 8000 }]

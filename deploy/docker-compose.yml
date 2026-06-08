@@ -1,0 +1,9 @@
+services:
+  prefetchparse:
+    build: .
+    image: cognis/prefetchparse:local
+    restart: unless-stopped
+    ports: ["8000:8000"]
+    environment:
+      - COGNIS_LOG_LEVEL=info
+    volumes: ["./data:/data"]
