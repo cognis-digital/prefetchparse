@@ -1,16 +1,151 @@
-"""Smoke tests for PREFETCHPARSE."""
-from prefetchparse.core import scan, TOOL_NAME, TOOL_VERSION
+"""Smoke tests for prefetchparse - no network, no real Windows needed.
 
-def test_identity():
-    assert TOOL_NAME and TOOL_VERSION
+We synthesize valid uncompressed v23 prefetch buffers in-memory and assert the
+parser + triage engine behave correctly.
+"""
+import datetime
+import json
+import struct
+import sys
+from pathlib import Path
 
-def test_scan_runs(tmp_path):
-    f = tmp_path / "x.txt"
-    f.write_text("a TODO here\nFIXME later\n")
-    res = scan(str(tmp_path))
-    assert res.score >= 0
-    assert any("TODO" in fi.title or "FIXME" in fi.title for fi in res.findings)
+import pytest
 
-def test_cli_importable():
-    from prefetchparse.cli import main
-    assert callable(main)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from prefetchparse import (  # noqa: E402
+    TOOL_NAME,
+    TOOL_VERSION,
+    PrefetchParseError,
+    parse_prefetch_bytes,
+    triage_findings,
+)
+from prefetchparse.cli import main  # noqa: E402
+
+_FILETIME_EPOCH = datetime.datetime(1601, 1, 1, tzinfo=datetime.timezone.utc)
+
+
+def _to_ft(dt):
+    return int((dt - _FILETIME_EPOCH).total_seconds() * 10_000_000)
+
+
+def build_v23(exe_name, run_count, last_run_dt, names, prefetch_hash):
+    FI_START = 84
+    FI_SIZE = 156
+    blob = ("\x00".join(names) + "\x00").encode("utf-16-le")
+    names_off = FI_START + FI_SIZE
+    names_len = len(blob)
+    buf = bytearray(names_off + names_len)
+    struct.pack_into("<I", buf, 0, 23)
+    buf[4:8] = b"SCCA"
+    struct.pack_into("<I", buf, 12, len(buf))
+    exe_u = exe_name.encode("utf-16-le")[:60]
+    buf[0x10:0x10 + len(exe_u)] = exe_u
+    struct.pack_into("<I", buf, 0x4C, prefetch_hash)
+    struct.pack_into("<I", buf, 0x64, names_off)
+    struct.pack_into("<I", buf, 0x68, names_len)
+    struct.pack_into("<I", buf, 0x70, 1)
+    struct.pack_into("<Q", buf, FI_START + 44, _to_ft(last_run_dt))
+    struct.pack_into("<I", buf, FI_START + 152, run_count)
+    buf[names_off:names_off + names_len] = blob
+    return bytes(buf)
+
+
+@pytest.fixture
+def suspicious_pf():
+    return build_v23(
+        "POWERSHELL.EXE", 1,
+        datetime.datetime(2026, 6, 7, 14, 32, 11, tzinfo=datetime.timezone.utc),
+        [r"\VOLUME{01}\WINDOWS\SYSTEM32\WINDOWSPOWERSHELL\V1.0\POWERSHELL.EXE",
+         r"\VOLUME{01}\USERS\CHRIS\APPDATA\LOCAL\TEMP\STAGE\PAYLOAD.PS1"],
+        0xAF1C2D3E,
+    )
+
+
+@pytest.fixture
+def benign_pf():
+    return build_v23(
+        "NOTEPAD.EXE", 42,
+        datetime.datetime(2026, 6, 6, 9, 5, 0, tzinfo=datetime.timezone.utc),
+        [r"\VOLUME{01}\WINDOWS\SYSTEM32\NOTEPAD.EXE"],
+        0x1B2C3D4E,
+    )
+
+
+def test_metadata():
+    assert TOOL_NAME == "prefetchparse"
+    assert TOOL_VERSION.count(".") == 2
+
+
+def test_parse_core_fields(benign_pf):
+    pf = parse_prefetch_bytes(benign_pf, "NOTEPAD.EXE-1B2C3D4E.pf")
+    assert pf.version == 23
+    assert pf.executable == "NOTEPAD.EXE"
+    assert pf.run_count == 42
+    assert pf.prefetch_hash == "1B2C3D4E"
+    assert pf.last_run_times[0].startswith("2026-06-06T09:05:00")
+    assert any("NOTEPAD.EXE" in f for f in pf.accessed_files)
+
+
+def test_parse_accessed_paths(suspicious_pf):
+    pf = parse_prefetch_bytes(suspicious_pf, "POWERSHELL.EXE-AF1C2D3E.pf")
+    assert any("PAYLOAD.PS1" in f for f in pf.accessed_files)
+
+
+def test_triage_flags_lolbin_and_temp(suspicious_pf):
+    pf = parse_prefetch_bytes(suspicious_pf, "POWERSHELL.EXE-AF1C2D3E.pf")
+    [finding] = triage_findings([pf])
+    assert finding.severity == "high"
+    joined = " ".join(finding.reasons).lower()
+    assert "living-off-the-land" in joined
+    assert "suspicious path" in joined
+
+
+def test_triage_benign_is_info(benign_pf):
+    pf = parse_prefetch_bytes(benign_pf, "NOTEPAD.EXE-1B2C3D4E.pf")
+    [finding] = triage_findings([pf])
+    assert finding.severity == "info"
+
+
+def test_rejects_compressed():
+    with pytest.raises(PrefetchParseError):
+        parse_prefetch_bytes(b"MAM\x04" + b"\x00" * 200, "x.pf")
+
+
+def test_rejects_bad_signature():
+    bad = bytearray(200)
+    struct.pack_into("<I", bad, 0, 23)
+    bad[4:8] = b"XXXX"
+    with pytest.raises(PrefetchParseError):
+        parse_prefetch_bytes(bytes(bad), "x.pf")
+
+
+def test_cli_json_and_exit_code(tmp_path, suspicious_pf, benign_pf, capsys):
+    d = tmp_path / "pf"
+    d.mkdir()
+    (d / "POWERSHELL.EXE-AF1C2D3E.pf").write_bytes(suspicious_pf)
+    (d / "NOTEPAD.EXE-1B2C3D4E.pf").write_bytes(benign_pf)
+    rc = main(["parse", str(d), "--format", "json"])
+    out = capsys.readouterr().out
+    payload = json.loads(out)
+    assert payload["summary"]["parsed"] == 2
+    assert payload["summary"]["high"] == 1
+    assert rc == 1
+
+
+def test_cli_html_output(tmp_path, suspicious_pf):
+    d = tmp_path / "pf"
+    d.mkdir()
+    (d / "POWERSHELL.EXE-AF1C2D3E.pf").write_bytes(suspicious_pf)
+    out_html = tmp_path / "report.html"
+    rc = main(["parse", str(d), "--format", "html", "-o", str(out_html)])
+    assert rc == 1
+    html = out_html.read_text(encoding="utf-8")
+    assert html.startswith("<!DOCTYPE html>")
+    assert "HIGH" in html
+    assert "http://" not in html and "https://" not in html
+
+
+def test_cli_no_parseable_input(tmp_path):
+    rc = main(["parse", str(tmp_path / "nope.pf")])
+    assert rc == 2
