@@ -16,7 +16,7 @@
 </div>
 
 ```bash
-pip install cognis-prefetchparse
+pip install "git+https://github.com/cognis-digital/prefetchparse.git"
 prefetchparse scan .            # → prioritized findings in seconds
 ```
 
@@ -49,7 +49,7 @@ Surface program-execution evidence from Windows Prefetch exports — without sta
 ## Quick start
 
 ```bash
-pip install cognis-prefetchparse
+pip install "git+https://github.com/cognis-digital/prefetchparse.git"
 prefetchparse --version
 prefetchparse scan .                       # scan current project
 prefetchparse scan . --format json         # machine-readable
