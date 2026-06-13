@@ -20,6 +20,12 @@ pip install "git+https://github.com/cognis-digital/prefetchparse.git"
 prefetchparse scan .            # → prioritized findings in seconds
 ```
 
+<!-- cognis:layman:start -->
+## What is this?
+
+Windows keeps a hidden record every time a program runs on your computer — these are called Prefetch files. prefetchparse reads those files and tells you which programs have been executed, when they ran last, and whether anything looks suspicious (like a scripting tool running from a temp folder or a file with a misleading name). It is aimed at IT security analysts and incident responders who need to quickly understand what happened on a Windows machine without installing heavyweight forensic software. You point it at a folder of Prefetch exports, and it gives you a prioritized report in seconds — on the command line, as JSON for automated pipelines, or as a standalone HTML page you can share with a colleague.
+<!-- cognis:layman:end -->
+
 ## Contents
 
 - [Why prefetchparse?](#why) · [Features](#features) · [Quick start](#quick-start) · [Example](#example) · [Architecture](#architecture) · [AI stack](#ai-stack) · [How it compares](#how-it-compares) · [Integrations](#integrations) · [Install anywhere](#install-anywhere) · [Related](#related) · [Contributing](#contributing)
@@ -46,6 +52,42 @@ Surface program-execution evidence from Windows Prefetch exports — without sta
 <div align="right"><a href="#top">↑ back to top</a></div>
 
 <a name="quick-start"></a>
+<!-- cognis:install:start -->
+## Install
+
+`prefetchparse` is source-available (not published to PyPI) — every method below installs
+straight from GitHub. Pick whichever you prefer; the one-line scripts auto-detect
+the best tool available on your machine.
+
+**One-liner (Linux / macOS):**
+```sh
+curl -fsSL https://raw.githubusercontent.com/cognis-digital/prefetchparse/HEAD/install.sh | sh
+```
+
+**One-liner (Windows PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/cognis-digital/prefetchparse/HEAD/install.ps1 | iex
+```
+
+**Or install manually — any one of:**
+```sh
+pipx install "git+https://github.com/cognis-digital/prefetchparse.git"     # isolated (recommended)
+uv tool install "git+https://github.com/cognis-digital/prefetchparse.git"  # uv
+pip install "git+https://github.com/cognis-digital/prefetchparse.git"      # pip
+```
+
+**From source:**
+```sh
+git clone https://github.com/cognis-digital/prefetchparse.git
+cd prefetchparse && pip install .
+```
+
+Then run:
+```sh
+prefetchparse --help
+```
+<!-- cognis:install:end -->
+
 ## Quick start
 
 ```bash
