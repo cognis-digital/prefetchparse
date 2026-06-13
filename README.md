@@ -20,6 +20,39 @@ pip install cognis-prefetchparse
 prefetchparse scan .            # → prioritized findings in seconds
 ```
 
+## Usage — step by step
+
+1. Install the CLI (Python 3.9+):
+
+   ```bash
+   pip install git+https://github.com/cognis-digital/prefetchparse.git
+   ```
+
+2. Parse one or more Windows Prefetch (`.pf`) files or directories:
+
+   ```bash
+   prefetchparse parse C:\Windows\Prefetch
+   ```
+
+3. Emit a machine-readable report for downstream tooling:
+
+   ```bash
+   prefetchparse parse ./prefetch --format json -o evidence.json
+   ```
+
+4. Produce a shareable HTML report instead:
+
+   ```bash
+   prefetchparse parse ./prefetch --format html -o report.html
+   ```
+
+5. Use the exit code in automation (non-zero when high/medium findings or
+   parse errors are present):
+
+   ```bash
+   prefetchparse parse ./prefetch --format json; echo "exit=$?"
+   ```
+
 ## Contents
 
 - [Why prefetchparse?](#why) · [Features](#features) · [Quick start](#quick-start) · [Example](#example) · [Architecture](#architecture) · [AI stack](#ai-stack) · [How it compares](#how-it-compares) · [Integrations](#integrations) · [Install anywhere](#install-anywhere) · [Related](#related) · [Contributing](#contributing)
