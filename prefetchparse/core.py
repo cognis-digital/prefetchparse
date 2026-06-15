@@ -27,6 +27,9 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Iterable
 
+TOOL_NAME = "prefetchparse"
+TOOL_VERSION = "0.1.0"
+
 # FILETIME epoch: 1601-01-01 UTC, in 100-ns ticks.
 _FILETIME_EPOCH = _dt.datetime(1601, 1, 1, tzinfo=_dt.timezone.utc)
 _HUNDRED_NS = 10_000_000
@@ -216,17 +219,34 @@ def parse_prefetch_bytes(data: bytes, source_name: str = "<bytes>") -> PrefetchF
 
 
 def parse_prefetch_file(path: str | Path) -> PrefetchFile:
+    """Read and parse a single .pf file from *path*.
+
+    Raises:
+        OSError: if the file cannot be read (includes PermissionError).
+        PrefetchParseError: if the file content is not a valid prefetch buffer.
+    """
     p = Path(path)
-    data = p.read_bytes()
+    try:
+        data = p.read_bytes()
+    except OSError as exc:
+        raise OSError(f"cannot read {p.name}: {exc}") from exc
     return parse_prefetch_bytes(data, source_name=p.name)
 
 
-def scan_directory(path: str | Path) -> tuple[list[PrefetchFile], list[tuple[str, str]]]:
+_ScanResult = tuple[list[PrefetchFile], list[tuple[str, str]]]
+
+
+def scan_directory(path: str | Path) -> _ScanResult:
     """Parse every *.pf in a directory.
 
     Returns (parsed, errors) where errors is a list of (filename, message).
+    Raises ValueError if *path* is not an existing directory.
     """
     p = Path(path)
+    if not p.exists():
+        raise ValueError(f"scan_directory: path does not exist: {p}")
+    if not p.is_dir():
+        raise ValueError(f"scan_directory: path is not a directory: {p}")
     parsed: list[PrefetchFile] = []
     errors: list[tuple[str, str]] = []
     for pf in sorted(p.glob("*.pf")):

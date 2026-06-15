@@ -32,3 +32,13 @@ prefetchparse = "prefetchparse.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["prefetchparse"]
+
+[tool.ruff]
+line-length = 132
+
+[tool.ruff.lint]
+select = ["F", "E"]
+# E501 line-length: HTML template strings in cli.py intentionally exceed 88 chars.
+# The project line-length is set to 132 to accommodate embedded HTML/CSS.
+per-file-ignores = {}
+ignore = ["E501"]

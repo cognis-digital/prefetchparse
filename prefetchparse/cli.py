@@ -41,7 +41,11 @@ def _collect(paths: list[str]) -> tuple[list[PrefetchFile], list[tuple[str, str]
     for raw in paths:
         p = Path(raw)
         if p.is_dir():
-            d_parsed, d_errors = scan_directory(p)
+            try:
+                d_parsed, d_errors = scan_directory(p)
+            except (ValueError, OSError) as exc:
+                errors.append((raw, str(exc)))
+                continue
             parsed.extend(d_parsed)
             errors.extend(d_errors)
         elif p.is_file():
@@ -206,7 +210,9 @@ def _render_html(parsed, errors, findings) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog=TOOL_NAME,
-        description="Surface program-execution evidence from Windows Prefetch (.pf).",
+        description=(
+            "Surface program-execution evidence from Windows Prefetch (.pf)."
+        ),
     )
     parser.add_argument(
         "--version", action="version", version=f"{TOOL_NAME} {TOOL_VERSION}"
@@ -216,7 +222,9 @@ def main(argv: list[str] | None = None) -> int:
     p_parse = sub.add_parser(
         "parse", help="Parse .pf files/dirs and report execution evidence."
     )
-    p_parse.add_argument("paths", nargs="+", help="One or more .pf files or directories.")
+    p_parse.add_argument(
+        "paths", nargs="+", help="One or more .pf files or directories."
+    )
     p_parse.add_argument(
         "--format", choices=["table", "json", "html"], default="table"
     )
@@ -230,7 +238,12 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 2
 
-    parsed, errors = _collect(args.paths)
+    try:
+        parsed, errors = _collect(args.paths)
+    except Exception as exc:  # pragma: no cover
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
     if not parsed and errors:
         for name, msg in errors:
             print(f"error: {name}: {msg}", file=sys.stderr)
@@ -246,8 +259,13 @@ def main(argv: list[str] | None = None) -> int:
         report = _render_table(parsed, errors, findings)
 
     if args.output:
-        Path(args.output).write_text(report, encoding="utf-8")
-        print(f"wrote {args.format} report -> {args.output}", file=sys.stderr)
+        try:
+            Path(args.output).write_text(report, encoding="utf-8")
+            print(f"wrote {args.format} report -> {args.output}", file=sys.stderr)
+        except OSError as exc:
+            print(f"error: cannot write output file '{args.output}': {exc}",
+                  file=sys.stderr)
+            return 2
     else:
         print(report)
 
