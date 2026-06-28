@@ -1,0 +1,3 @@
+$ prefetchparse-emit --version
+
+prefetchparse 0.1.0

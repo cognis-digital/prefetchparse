@@ -20,6 +20,59 @@ pip install cognis-prefetchparse
 prefetchparse scan .            # → prioritized findings in seconds
 ```
 
+
+<!-- cognis:example:start -->
+## 🔎 Example output
+
+Real, reproducible output from the tool — runs offline:
+
+```console
+$ prefetchparse-emit --version
+prefetchparse 0.1.0
+```
+
+```console
+$ prefetchparse-emit --help
+usage: prefetchparse [-h] [--version] {parse} ...
+
+Surface program-execution evidence from Windows Prefetch (.pf).
+
+positional arguments:
+  {parse}
+    parse     Parse .pf files/dirs and report execution evidence.
+
+options:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
+```
+
+> Blocks above are real `prefetchparse` output — reproduce them from a clone.
+
+**Sample result format** _(illustrative values — run on your own data for real findings):_
+
+```
+{
+"findings": [
+    {
+        "id": "1234567890",
+        "title": "Suspicious Network Traffic",
+        "description": "Potential malicious activity detected on network interface 192.168.1.100",
+        "labels": ["network", "malware"],
+        "created_by": "cognis-connect"
+    },
+    {
+        "id": "2345678901",
+        "title": "Unusual File Access",
+        "description": "User 'admin' accessed file '/var/log/secure.log' with unusual frequency",
+        "labels": ["file", "user"],
+        "created_by": "cognis-connect"
+    }
+]
+}
+```
+
+<!-- cognis:example:end -->
+
 ## Usage — step by step
 
 1. Install the CLI (Python 3.9+):

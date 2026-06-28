@@ -1,0 +1,13 @@
+$ prefetchparse-emit --help
+
+usage: prefetchparse [-h] [--version] {parse} ...
+
+Surface program-execution evidence from Windows Prefetch (.pf).
+
+positional arguments:
+  {parse}
+    parse     Parse .pf files/dirs and report execution evidence.
+
+options:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
